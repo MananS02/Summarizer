@@ -18,6 +18,27 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files (frontend + uploaded assets)
 app.use(express.static(path.join(__dirname, '../public')));
 
+// Health check endpoint
+app.get('/health', async (req, res) => {
+    try {
+        const mongoose = require('mongoose');
+        const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+
+        res.json({
+            status: 'ok',
+            timestamp: new Date().toISOString(),
+            uptime: process.uptime(),
+            mongodb: dbStatus,
+            environment: process.env.NODE_ENV || 'development'
+        });
+    } catch (error) {
+        res.status(503).json({
+            status: 'error',
+            message: error.message
+        });
+    }
+});
+
 // API Routes
 app.use('/api/documents', documentsRoute);
 app.use('/api/sections', sectionsRoute);
@@ -31,12 +52,27 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
+// 404 handler
+app.use((req, res) => {
+    res.status(404).json({
+        error: 'Not Found',
+        message: `Route ${req.url} not found`
+    });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error('Server error:', err);
-    res.status(500).json({
-        error: 'Internal server error',
-        message: err.message
+
+    const statusCode = err.statusCode || 500;
+    const message = process.env.NODE_ENV === 'production'
+        ? 'Internal server error'
+        : err.message;
+
+    res.status(statusCode).json({
+        error: 'Server Error',
+        message: message,
+        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
     });
 });
 

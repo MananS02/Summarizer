@@ -1,317 +1,266 @@
-# PDF Learning Platform
+# 📚 PDF Learning Platform with AI
 
-A minimal learning platform that converts PDFs into structured sections with AI-generated summaries using LlamaParser and MongoDB.
+An intelligent PDF learning platform that uses **GPT-4** for heading detection and **GPT-4 Vision** for image classification to create structured, searchable educational content from PDF documents.
 
-## Features
+## ✨ Features
 
-- 📤 **PDF Upload**: Upload any PDF document
-- 🤖 **AI-Powered Summaries**: Automatic headline and summary generation for each section
-- 📊 **Smart Parsing**: Extract headings, text, tables, and images using LlamaParser
-- 💾 **MongoDB Storage**: Simple document and section storage
-- 🎨 **Clean UI**: Minimal, responsive interface with vanilla HTML/CSS
-- 🔗 **Simple URLs**: `/docs/{documentSlug}` and `/docs/{documentSlug}/{sectionSlug}`
+### 🤖 AI-Powered Processing
+- **LLM-Based Heading Detection**: Uses GPT-4 to intelligently identify section headings and hierarchy
+- **Smart Image Classification**: GPT-4 Vision analyzes and classifies images as important or decorative
+- **AI-Generated Summaries**: Automatic 10-12 sentence summaries for each section
+- **Rich Metadata**: AI-generated descriptions, tags, and relevance scores for images
 
-## Tech Stack
+### 📖 Content Extraction
+- **Accurate Sectioning**: Matches PDF structure exactly using LLM analysis
+- **Table Extraction**: Captures tables with metadata (rows, columns)
+- **Image Filtering**: Keeps only educational diagrams, charts, and illustrations
+- **Paragraph Formation**: Combines text into proper paragraphs
 
-- **Backend**: Node.js + Express
-- **Database**: MongoDB
-- **PDF Parsing**: LlamaParser API
-- **AI Summarization**: OpenAI GPT-3.5
-- **Frontend**: Vanilla HTML/CSS/JavaScript (no frameworks)
+### 🎨 Modern UI
+- Beautiful gradient header with grid pattern
+- Card-based layouts with hover effects
+- Responsive design for all screen sizes
+- AI metadata display (image types, relevance scores, tags)
+- Smooth animations and transitions
 
-## Prerequisites
+## 🏗️ Architecture
 
-Before you begin, ensure you have:
+### Technology Stack
 
-1. **Node.js** (v16 or higher) - [Download](https://nodejs.org/)
-2. **MongoDB** - Either:
-   - Local installation - [Download](https://www.mongodb.com/try/download/community)
-   - MongoDB Atlas account - [Sign up](https://www.mongodb.com/cloud/atlas)
-3. **LlamaParser API Key** - [Get one here](https://cloud.llamaindex.ai/)
-4. **OpenAI API Key** - [Get one here](https://platform.openai.com/api-keys)
+**Backend:**
+- Node.js + Express.js
+- MongoDB + Mongoose
+- Python 3.14 (PDF processing)
 
-## Installation
+**AI Services:**
+- Azure OpenAI GPT-4 (heading detection, summaries)
+- Azure OpenAI GPT-4 Vision (image classification)
 
-### 1. Clone or Download
+**PDF Processing:**
+- PyMuPDF (fitz) - text, image, table extraction
 
-If you received this as a folder, navigate to it:
-```bash
-cd pdf-learning-platform
+**Frontend:**
+- HTML5, CSS3, Vanilla JavaScript
+- Modern design with CSS custom properties
+- No frameworks - lightweight and fast
+
+### Processing Pipeline
+
+```
+PDF → PyMuPDF → GPT-4 (Headings) → GPT-4 Vision (Images) → MongoDB → UI
 ```
 
-### 2. Install Dependencies
+1. **Extract Text**: PyMuPDF extracts all text from PDF
+2. **Identify Headings**: GPT-4 analyzes text to find proper headings and hierarchy
+3. **Extract Content**: For each section, extract text, images, and tables
+4. **Classify Images**: GPT-4 Vision determines if images are important or decorative
+5. **Store Data**: Save sections with blocks (text, images, tables) to MongoDB
+6. **Generate Summaries**: GPT-4 creates comprehensive summaries
+7. **Display**: Modern UI shows sections with AI-enhanced content
 
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js (v18+)
+- Python 3.14
+- MongoDB
+- Azure OpenAI API access
+
+### Installation
+
+1. **Clone the repository**
+```bash
+git clone https://github.com/MananS02/Summarizer.git
+cd Summarizer
+```
+
+2. **Install Node.js dependencies**
 ```bash
 npm install
 ```
 
-### 3. Set Up Environment Variables
+3. **Set up Python environment**
+```bash
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install pymupdf openai python-dotenv
+```
 
-Create a `.env` file in the root directory:
-
+4. **Configure environment variables**
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` and add your API keys:
-
+Edit `.env` with your credentials:
 ```env
-MONGODB_URI=mongodb://localhost:27017/pdf-learning-platform
-LLAMAPARSE_API_KEY=your_llamaparse_api_key_here
-OPENAI_API_KEY=your_openai_api_key_here
+MONGODB_URI=your_mongodb_connection_string
+AZURE_OPENAI_GPT_ENDPOINT=your_azure_endpoint
+AZURE_OPENAI_GPT_KEY=your_api_key
+AZURE_OPENAI_GPT_DEPLOYMENT=gpt-4
+AZURE_OPENAI_GPT_VERSION=2024-02-15-preview
 PORT=3000
 ```
 
-**For MongoDB Atlas**, use this format:
-```env
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/pdf-learning-platform
-```
+### Usage
 
-### 4. Start MongoDB (if using local installation)
-
+1. **Process a PDF with LLM-based heading detection**
 ```bash
-# macOS (if installed via Homebrew)
-brew services start mongodb-community
-
-# Linux
-sudo systemctl start mongod
-
-# Windows
-# MongoDB should start automatically as a service
+node backend/insertLLMData.js
 ```
 
-### 5. Start the Server
+This will:
+- Use GPT-4 to identify proper headings
+- Extract content for each section
+- Classify images with GPT-4 Vision
+- Extract tables with metadata
+- Save to MongoDB
 
+2. **Generate AI summaries**
+```bash
+node backend/regenerateSummariesFast.js
+```
+
+3. **Start the server**
 ```bash
 npm start
 ```
 
-You should see:
+4. **Open browser**
 ```
-✓ MongoDB connected successfully
-🚀 PDF Learning Platform running on http://localhost:3000
-📚 Upload PDFs and start learning!
+http://localhost:3000
 ```
 
-### 6. Open in Browser
+## 📊 Statistics from Sample PDF
 
-Navigate to: **http://localhost:3000**
+**Processing Results:**
+- Total images found: 41
+- AI-classified as important: 34 (83%)
+- AI-classified as decorative: 7 (17%)
+- Tables extracted: 39
+- Sections created: 8
+- Total blocks: 95
 
-## Usage
+**Cost per PDF:**
+- Heading detection: ~$0.75
+- Image classification: ~$0.45
+- Summaries: ~$0.10
+- **Total: ~$1.30 per PDF**
 
-### 1. Upload a PDF
+## 🎯 Key Features Explained
 
-- Click "Choose PDF File" on the home page
-- Select a PDF document
-- Click "Upload & Process"
-- Wait for processing (this may take 30-60 seconds depending on PDF size)
+### LLM-Based Heading Detection
 
-### 2. Browse Documents
+Instead of using regex patterns, we use GPT-4 to:
+- Analyze the full document text
+- Identify true section headings
+- Determine heading hierarchy (Level 1, 2, etc.)
+- Provide context for each heading
 
-- View all uploaded documents on the home page
-- Click on a document to see its sections
+**Benefits:**
+- ✅ Accurate section structure matching PDF
+- ✅ Handles various heading formats
+- ✅ Understands document context
+- ✅ No manual pattern configuration
 
-### 3. View Sections
+### AI Image Classification
 
-- Click on any section to view:
-  - AI-generated headline
-  - AI-generated summary
-  - Full content
-  - Images and tables (if any)
-- Navigate between sections using Previous/Next buttons
+GPT-4 Vision analyzes each image to determine:
+- **Is it important?** (diagram, chart, screenshot vs icon, logo)
+- **What type?** (Venn diagram, bar chart, flowchart, etc.)
+- **What does it show?** (AI-generated description)
+- **How relevant?** (0-10 relevance score)
+- **What topics?** (keyword tags)
 
-## Project Structure
+**Classification Rules:**
+- Diagrams, charts, Venn diagrams → IMPORTANT
+- Images with text labels → IMPORTANT
+- Small icons (< 50px) with no text → decorative
+- When in doubt → IMPORTANT (inclusive approach)
+
+## 📁 Project Structure
 
 ```
 pdf-learning-platform/
 ├── backend/
-│   ├── server.js              # Main Express server
-│   ├── config/
-│   │   └── db.js              # MongoDB connection
-│   ├── models/
-│   │   ├── Document.js        # Document schema
-│   │   └── Section.js         # Section schema
-│   ├── routes/
-│   │   ├── upload.js          # PDF upload & processing
-│   │   ├── documents.js       # Document listing
-│   │   └── sections.js        # Section retrieval
-│   ├── services/
-│   │   ├── parser.js          # LlamaParser integration
-│   │   └── summarizer.js      # OpenAI summarization
-│   └── uploads/               # Temporary PDF storage
+│   ├── models/           # MongoDB schemas
+│   ├── routes/           # Express API routes
+│   ├── services/         # PDF processing scripts
+│   │   ├── identify_headings_llm.py      # GPT-4 heading detection
+│   │   ├── classify_image_enhanced.py    # GPT-4 Vision classifier
+│   │   ├── process_pdf_llm.py            # Main PDF processor
+│   │   └── summarizer.js                 # AI summary generator
+│   ├── insertLLMData.js  # Process PDF with LLM
+│   ├── regenerateSummariesFast.js        # Generate summaries
+│   └── server.js         # Express server
 ├── public/
-│   ├── uploads/               # Extracted images/tables
-│   ├── index.html             # Home page
-│   ├── document.html          # Document page
-│   ├── section.html           # Section page
-│   └── styles.css             # Minimal styling
+│   ├── index.html        # Main page (section list)
+│   ├── topic.html        # Topic detail page
+│   └── styles.css        # Modern UI styles
 ├── package.json
-├── .env.example
 └── README.md
 ```
 
-## API Endpoints
+## 🔧 Configuration
 
-### Upload PDF
-```
-POST /api/upload
-Content-Type: multipart/form-data
-Body: { pdf: <file> }
+### PDF Processing Options
 
-Response:
-{
-  "success": true,
-  "documentSlug": "my-document",
-  "sectionCount": 5
+Edit `backend/insertLLMData.js` to configure:
+- PDF file path
+- Output directory
+- Azure OpenAI credentials
+
+### Image Classification Tuning
+
+Edit `backend/services/classify_image_enhanced.py` to adjust:
+- Classification criteria
+- Image type categories
+- Relevance scoring
+
+### Summary Generation
+
+Edit `backend/services/summarizer.js` to customize:
+- Summary length (currently 10-12 sentences)
+- Temperature (creativity level)
+- Max tokens (currently 500)
+
+## 🎨 UI Customization
+
+The UI uses CSS custom properties for easy theming. Edit `public/styles.css`:
+
+```css
+:root {
+  --primary: #6366f1;        /* Primary color */
+  --primary-dark: #4f46e5;   /* Hover color */
+  --text-primary: #111827;   /* Main text */
+  --bg-primary: #ffffff;     /* Background */
+  /* ... more variables */
 }
 ```
 
-### List Documents
-```
-GET /api/documents
+## 📝 API Endpoints
 
-Response:
-[
-  {
-    "title": "My Document",
-    "slug": "my-document",
-    "uploadedAt": "2024-01-01T00:00:00.000Z",
-    "sectionCount": 5
-  }
-]
-```
+- `GET /api/documents/:slug` - Get document with all sections
+- `GET /api/sections/:docSlug/:sectionSlug` - Get specific section with navigation
 
-### Get Document with Sections
-```
-GET /api/documents/:slug
+## 🤝 Contributing
 
-Response:
-{
-  "document": { ... },
-  "sections": [
-    {
-      "sectionSlug": "introduction",
-      "order": 0,
-      "heading": "Introduction",
-      "headline": "Getting Started with the Platform",
-      "summary": "This section introduces..."
-    }
-  ]
-}
-```
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-### Get Section Content
-```
-GET /api/sections/:docSlug/:sectionSlug
+## 📄 License
 
-Response:
-{
-  "section": {
-    "heading": "Introduction",
-    "headline": "Getting Started",
-    "summary": "This section...",
-    "content": "Full text content...",
-    "images": ["image1.png"],
-    "tables": ["table1.png"]
-  },
-  "navigation": {
-    "previous": { "slug": "...", "heading": "..." },
-    "next": { "slug": "...", "heading": "..." }
-  }
-}
-```
+MIT License - feel free to use this project for your own purposes.
 
-## How It Works
+## 🙏 Acknowledgments
 
-1. **Upload**: User uploads a PDF file
-2. **Parse**: LlamaParser extracts headings, text, images, and tables
-3. **Split**: Content is split into sections based on heading hierarchy
-4. **Summarize**: OpenAI generates a headline (≤12 words) and summary (1-3 sentences) for each section
-5. **Store**: Document and sections are saved to MongoDB
-6. **Display**: User can browse documents and sections through the web interface
+- Azure OpenAI for GPT-4 and GPT-4 Vision APIs
+- PyMuPDF for excellent PDF processing capabilities
+- MongoDB for flexible document storage
 
-## Troubleshooting
+## 📧 Contact
 
-### MongoDB Connection Error
-
-**Error**: `MongoDB connection error`
-
-**Solution**:
-- Ensure MongoDB is running: `brew services list` (macOS) or `sudo systemctl status mongod` (Linux)
-- Check your `MONGODB_URI` in `.env`
-- For Atlas, ensure your IP is whitelisted
-
-### LlamaParser API Error
-
-**Error**: `Failed to parse PDF: 401 Unauthorized`
-
-**Solution**:
-- Verify your `LLAMAPARSE_API_KEY` in `.env`
-- Check your API key at https://cloud.llamaindex.ai/
-
-### OpenAI API Error
-
-**Error**: `Summarization error: 401 Unauthorized`
-
-**Solution**:
-- Verify your `OPENAI_API_KEY` in `.env`
-- Ensure you have credits in your OpenAI account
-
-### Upload Timeout
-
-**Error**: `Parsing timeout - job did not complete in time`
-
-**Solution**:
-- Try a smaller PDF file
-- Increase timeout in `backend/services/parser.js` (line 45: `maxAttempts`)
-
-## Customization
-
-### Change LLM Provider
-
-Edit `backend/services/summarizer.js` to use a different provider (Anthropic, local models, etc.)
-
-### Adjust Summary Length
-
-Modify the prompt in `backend/services/summarizer.js` (lines 16-24)
-
-### Change Styling
-
-Edit `public/styles.css` - all styles use CSS variables for easy theming
-
-### Modify Section Detection
-
-Edit `backend/services/parser.js` - the `extractSections` function uses regex to detect headings
-
-## Limitations
-
-- **No RAG**: This is a simple content viewer, not a Q&A system
-- **No Vector DB**: Sections are retrieved by slug, not semantic search
-- **Local Storage**: Images/tables stored on disk, not in cloud
-- **Single User**: No authentication or multi-user support
-
-## Future Enhancements
-
-If you want to extend this platform:
-
-- Add user authentication
-- Implement full-text search
-- Add vector embeddings for semantic search
-- Support more file formats (DOCX, PPTX)
-- Add section editing capabilities
-- Implement collaborative features
-
-## License
-
-MIT
-
-## Support
-
-For issues or questions:
-1. Check the troubleshooting section above
-2. Review the LlamaParser docs: https://docs.llamaindex.ai/
-3. Review the OpenAI docs: https://platform.openai.com/docs/
+For questions or support, please open an issue on GitHub.
 
 ---
 
-**Built with ❤️ for simple, effective learning**
+**Built with ❤️ using AI-powered document processing**
