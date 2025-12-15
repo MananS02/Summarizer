@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Topic Details - Learning Platform</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+
+<body>
+  <header>
+    <div class="container">
+      <h1>📚 Software Vulnerability Penetration Tester</h1>
+      <p id="breadcrumb">Loading...</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="nav-buttons">
+      <a href="/" class="btn btn-secondary">← Back to All Topics</a>
+    </div>
+
+    <div id="loading" class="loading">
+      Loading topic content...
+    </div>
+
+    <article id="topicContent" class="section" style="display: none;">
+      <header class="section-header">
+        <p class="section-number" id="sectionNumber"></p>
+        <h1 id="topicHeading"></h1>
+        <h2 class="ai-headline" id="topicHeadline"></h2>
+        <p class="ai-summary" id="topicSummary"></p>
+      </header>
+
+      <div class="section-body" id="sectionBody">
+        <!-- Blocks will be rendered here in order -->
+      </div>
+    </article>
+
+    <nav id="topicNav" class="topic-nav" style="display: none;"></nav>
+
+    <div id="errorMessage" class="message error" style="display: none;"></div>
+  </main>
+
+  <script>
+    // Get section slug from URL
+    const pathParts = window.location.pathname.split('/');
+    const sectionSlug = pathParts[2];
+
+    async function loadTopic() {
+      const loading = document.getElementById('loading');
+      const topicContent = document.getElementById('topicContent');
+      const topicNav = document.getElementById('topicNav');
+      const errorMessage = document.getElementById('errorMessage');
+
+      try {
+        const response = await fetch(`/api/sections/test-sample/${sectionSlug}`);
+        
+        if (!response.ok) {
+          throw new Error('Topic not found');
+        }
+
+        const data = await response.json();
+        const topic = data.section;
+
+        // Update breadcrumb
+        document.getElementById('breadcrumb').textContent = topic.heading;
+        document.title = `${topic.heading} - Learning Platform`;
+
+        // Hide loading
+        loading.style.display = 'none';
+        topicContent.style.display = 'block';
+
+        // Render header
+        document.getElementById('sectionNumber').textContent = (topic.order + 1) + '.';
+        document.getElementById('topicHeading').textContent = topic.heading;
+        
+        if (topic.headline) {
+          document.getElementById('topicHeadline').textContent = topic.headline;
+        }
+        
+        if (topic.summary) {
+          document.getElementById('topicSummary').textContent = topic.summary;
+        }
+
+        // Render blocks in order
+        const sectionBody = document.getElementById('sectionBody');
+        sectionBody.innerHTML = '';
+
+        if (topic.blocks && topic.blocks.length > 0) {
+          // Render ordered blocks
+          topic.blocks.forEach(block => {
+            const element = createBlockElement(block);
+            if (element) {
+              sectionBody.appendChild(element);
+            }
+          });
+        } else {
+          // Fallback: render old format
+          renderOldFormat(topic, sectionBody);
+        }
+
+        // Render navigation
+        if (data.navigation.previous || data.navigation.next) {
+          topicNav.style.display = 'flex';
+          
+          if (data.navigation.previous) {
+            const prevBtn = document.createElement('a');
+            prevBtn.href = `/topic/${data.navigation.previous.slug}`;
+            prevBtn.className = 'btn btn-secondary';
+            prevBtn.textContent = `← Previous: ${data.navigation.previous.heading}`;
+            topicNav.appendChild(prevBtn);
+          } else {
+            topicNav.appendChild(document.createElement('div'));
+          }
+
+          if (data.navigation.next) {
+            const nextBtn = document.createElement('a');
+            nextBtn.href = `/topic/${data.navigation.next.slug}`;
+            nextBtn.className = 'btn';
+            nextBtn.textContent = `Next: ${data.navigation.next.heading} →`;
+            topicNav.appendChild(nextBtn);
+          } else {
+            topicNav.appendChild(document.createElement('div'));
+          }
+        }
+
+      } catch (error) {
+        loading.style.display = 'none';
+        errorMessage.textContent = `Failed to load topic: ${error.message}`;
+        errorMessage.style.display = 'block';
+      }
+    }
+
+    function createBlockElement(block) {
+      if (block.type === 'text') {
+        const p = document.createElement('p');
+        p.textContent = block.content;
+        return p;
+      } else if (block.type === 'table') {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'table-wrapper';
+        
+        // Add table metadata if available
+        if (block.metadata && block.metadata.is_table) {
+          const caption = document.createElement('div');
+          caption.className = 'table-caption';
+          caption.textContent = `Table (${block.metadata.rows || '?'} rows × ${block.metadata.cols || '?'} columns)`;
+          wrapper.appendChild(caption);
+        }
+        
+        // Display table as image
+        const img = document.createElement('img');
+        img.src = `/uploads/test-sample/${block.content}`;
+        img.alt = 'Table';
+        img.className = 'table-image';
+        wrapper.appendChild(img);
+        
+        return wrapper;
+      } else if (block.type === 'image') {
+        const figure = document.createElement('figure');
+        figure.className = 'section-image';
+        
+        // Add AI classification badge if available
+        if (block.metadata?.ai_classified && block.metadata?.image_type) {
+          const badge = document.createElement('div');
+          badge.className = 'image-type-badge';
+          badge.textContent = block.metadata.image_type;
+          
+          // Add relevance score
+          if (block.metadata.relevance_score) {
+            const score = document.createElement('span');
+            score.className = 'relevance-score';
+            score.textContent = ` ${block.metadata.relevance_score}/10`;
+            badge.appendChild(score);
+          }
+          
+          figure.appendChild(badge);
+        }
+        
+        const img = document.createElement('img');
+        img.src = `/uploads/test-sample/${block.content}`;
+        img.alt = block.metadata?.description || 'Section diagram';
+        img.title = block.metadata?.description || '';
+        
+        figure.appendChild(img);
+        
+        // Add AI-generated caption
+        if (block.metadata?.description) {
+          const caption = document.createElement('figcaption');
+          caption.textContent = block.metadata.description;
+          
+          // Add tags if available
+          if (block.metadata.tags && block.metadata.tags.length > 0) {
+            const tagsDiv = document.createElement('div');
+            tagsDiv.className = 'image-tags';
+            block.metadata.tags.forEach(tag => {
+              const tagSpan = document.createElement('span');
+              tagSpan.className = 'tag';
+              tagSpan.textContent = tag;
+              tagsDiv.appendChild(tagSpan);
+            });
+            caption.appendChild(tagsDiv);
+          }
+          
+          figure.appendChild(caption);
+        }
+        
+        return figure;
+      }
+      return null;
+    }
+
+    function renderOldFormat(topic, container) {
+      // Fallback for old data format
+      const contentP = document.createElement('p');
+      contentP.textContent = topic.content;
+      container.appendChild(contentP);
+
+      // Images
+      if (topic.images && topic.images.length > 0) {
+        const imagesTitle = document.createElement('h3');
+        imagesTitle.textContent = 'Images';
+        container.appendChild(imagesTitle);
+        
+        topic.images.forEach(imgPath => {
+          const figure = document.createElement('figure');
+          figure.className = 'section-image';
+          
+          const img = document.createElement('img');
+          img.src = `/uploads/test-sample/${imgPath}`;
+          img.alt = 'Topic image';
+          
+          figure.appendChild(img);
+          container.appendChild(figure);
+        });
+      }
+
+      // Tables
+      if (topic.tables && topic.tables.length > 0) {
+        const tablesTitle = document.createElement('h3');
+        tablesTitle.textContent = 'Tables';
+        container.appendChild(tablesTitle);
+        
+        topic.tables.forEach(tablePath => {
+          const img = document.createElement('img');
+          img.src = `/uploads/test-sample/${tablePath}`;
+          img.alt = 'Topic table';
+          container.appendChild(img);
+        });
+      }
+    }
+
+    // Load topic on page load
+    loadTopic();
+  </script>
+</body>
+
+</html>

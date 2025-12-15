@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Section - PDF Learning Platform</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <h1>📚 PDF Learning Platform</h1>
+            <p id="breadcrumb">Loading...</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="nav-buttons">
+            <a href="/" class="btn btn-secondary">← Home</a>
+            <a href="#" id="backToDoc" class="btn btn-secondary">← Back to Document</a>
+        </div>
+
+        <div id="loading" class="loading">
+            Loading section...
+        </div>
+
+        <article id="sectionContent" class="section-content" style="display: none;">
+            <h1 id="sectionHeading"></h1>
+            <div id="sectionHeadline" class="headline"></div>
+            <div id="sectionSummary" class="summary"></div>
+            <div id="sectionText" class="content"></div>
+            <div id="sectionImages"></div>
+            <div id="sectionTables"></div>
+        </article>
+
+        <nav id="sectionNav" class="section-nav" style="display: none;"></nav>
+
+        <div id="errorMessage" class="message error" style="display: none;"></div>
+    </main>
+
+    <script>
+        // Get slugs from URL
+        const pathParts = window.location.pathname.split('/');
+        const documentSlug = pathParts[2];
+        const sectionSlug = pathParts[3];
+
+        // Update back link
+        document.getElementById('backToDoc').href = `/docs/${documentSlug}`;
+
+        async function loadSection() {
+            const loading = document.getElementById('loading');
+            const sectionContent = document.getElementById('sectionContent');
+            const sectionNav = document.getElementById('sectionNav');
+            const errorMessage = document.getElementById('errorMessage');
+
+            try {
+                const response = await fetch(`/api/sections/${documentSlug}/${sectionSlug}`);
+
+                if (!response.ok) {
+                    throw new Error('Section not found');
+                }
+
+                const data = await response.json();
+                const section = data.section;
+
+                // Update breadcrumb
+                document.getElementById('breadcrumb').textContent = section.heading;
+                document.title = `${section.heading} - PDF Learning Platform`;
+
+                // Hide loading
+                loading.style.display = 'none';
+                sectionContent.style.display = 'block';
+
+                // Render section content
+                document.getElementById('sectionHeading').textContent = section.heading;
+
+                if (section.headline) {
+                    document.getElementById('sectionHeadline').textContent = section.headline;
+                }
+
+                if (section.summary) {
+                    document.getElementById('sectionSummary').textContent = section.summary;
+                }
+
+                document.getElementById('sectionText').textContent = section.content;
+
+                // Render images
+                if (section.images && section.images.length > 0) {
+                    const imagesDiv = document.getElementById('sectionImages');
+                    section.images.forEach(imgPath => {
+                        const img = document.createElement('img');
+                        img.src = `/uploads/${documentSlug}/${imgPath}`;
+                        img.alt = 'Section image';
+                        imagesDiv.appendChild(img);
+                    });
+                }
+
+                // Render tables
+                if (section.tables && section.tables.length > 0) {
+                    const tablesDiv = document.getElementById('sectionTables');
+                    section.tables.forEach(tablePath => {
+                        const img = document.createElement('img');
+                        img.src = `/uploads/${documentSlug}/${tablePath}`;
+                        img.alt = 'Section table';
+                        tablesDiv.appendChild(img);
+                    });
+                }
+
+                // Render navigation
+                if (data.navigation.previous || data.navigation.next) {
+                    sectionNav.style.display = 'flex';
+
+                    if (data.navigation.previous) {
+                        const prevBtn = document.createElement('a');
+                        prevBtn.href = `/docs/${documentSlug}/${data.navigation.previous.slug}`;
+                        prevBtn.className = 'btn btn-secondary';
+                        prevBtn.textContent = `← ${data.navigation.previous.heading}`;
+                        sectionNav.appendChild(prevBtn);
+                    } else {
+                        sectionNav.appendChild(document.createElement('div'));
+                    }
+
+                    if (data.navigation.next) {
+                        const nextBtn = document.createElement('a');
+                        nextBtn.href = `/docs/${documentSlug}/${data.navigation.next.slug}`;
+                        nextBtn.className = 'btn';
+                        nextBtn.textContent = `${data.navigation.next.heading} →`;
+                        sectionNav.appendChild(nextBtn);
+                    } else {
+                        sectionNav.appendChild(document.createElement('div'));
+                    }
+                }
+
+            } catch (error) {
+                loading.style.display = 'none';
+                errorMessage.textContent = `Failed to load section: ${error.message}`;
+                errorMessage.style.display = 'block';
+            }
+        }
+
+        // Load section on page load
+        loadSection();
+    </script>
+</body>
+
+</html>

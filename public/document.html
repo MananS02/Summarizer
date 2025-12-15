@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document - PDF Learning Platform</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <h1>📚 PDF Learning Platform</h1>
+            <p id="documentTitle">Loading...</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="nav-buttons">
+            <a href="/" class="btn btn-secondary">← Back to Home</a>
+        </div>
+
+        <div id="loading" class="loading">
+            Loading document...
+        </div>
+
+        <section id="sectionsContainer" style="display: none;">
+            <h2>Sections</h2>
+            <ul id="sectionList" class="section-list"></ul>
+        </section>
+
+        <div id="errorMessage" class="message error" style="display: none;"></div>
+    </main>
+
+    <script>
+        // Get document slug from URL
+        const pathParts = window.location.pathname.split('/');
+        const documentSlug = pathParts[2];
+
+        async function loadDocument() {
+            const loading = document.getElementById('loading');
+            const sectionsContainer = document.getElementById('sectionsContainer');
+            const sectionList = document.getElementById('sectionList');
+            const errorMessage = document.getElementById('errorMessage');
+            const documentTitle = document.getElementById('documentTitle');
+
+            try {
+                const response = await fetch(`/api/documents/${documentSlug}`);
+
+                if (!response.ok) {
+                    throw new Error('Document not found');
+                }
+
+                const data = await response.json();
+
+                // Update title
+                documentTitle.textContent = data.document.title;
+                document.title = `${data.document.title} - PDF Learning Platform`;
+
+                // Hide loading
+                loading.style.display = 'none';
+                sectionsContainer.style.display = 'block';
+
+                // Render sections
+                if (data.sections.length === 0) {
+                    sectionList.innerHTML = '<li class="empty-state">No sections found</li>';
+                    return;
+                }
+
+                data.sections.forEach((section, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'section-item';
+
+                    li.innerHTML = `
+            <h3>
+              <span class="section-number">${index + 1}</span>
+              <a href="/docs/${documentSlug}/${section.sectionSlug}">
+                ${section.heading}
+              </a>
+            </h3>
+            ${section.headline ? `<div class="section-headline">${section.headline}</div>` : ''}
+            ${section.summary ? `<div class="section-summary">${section.summary}</div>` : ''}
+          `;
+
+                    sectionList.appendChild(li);
+                });
+
+            } catch (error) {
+                loading.style.display = 'none';
+                errorMessage.textContent = `Failed to load document: ${error.message}`;
+                errorMessage.style.display = 'block';
+            }
+        }
+
+        // Load document on page load
+        loadDocument();
+    </script>
+</body>
+
+</html>

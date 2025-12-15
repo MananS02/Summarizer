@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Topic Summaries - Learning Platform</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+
+<body>
+  <header>
+    <div class="container">
+      <h1>📚 Software Vulnerability Penetration Tester</h1>
+      <p>AI-Generated Topic Summaries</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="loading" class="loading">
+      Loading topic summaries...
+    </div>
+
+    <section id="topicsContainer" style="display: none;">
+      <div id="topicsList"></div>
+    </section>
+
+    <div id="errorMessage" class="message error" style="display: none;"></div>
+  </main>
+
+  <script>
+    async function loadTopics() {
+      const loading = document.getElementById('loading');
+      const topicsContainer = document.getElementById('topicsContainer');
+      const topicsList = document.getElementById('topicsList');
+      const errorMessage = document.getElementById('errorMessage');
+
+      try {
+        // Fetch all sections (topics)
+        const response = await fetch('/api/documents/test-sample');
+
+        if (!response.ok) {
+          throw new Error('Failed to load topics');
+        }
+
+        const data = await response.json();
+
+        // Hide loading
+        loading.style.display = 'none';
+        topicsContainer.style.display = 'block';
+
+        // Render topics
+        if (!data.sections || data.sections.length === 0) {
+          topicsList.innerHTML = '<div class="empty-state">No topics found. Please wait for PDF processing to complete.</div>';
+          return;
+        }
+
+        data.sections.forEach((section, index) => {
+          const topicCard = document.createElement('div');
+          topicCard.className = 'topic-card';
+
+          // Create topic URL
+          const topicUrl = `/topic/${section.sectionSlug}`;
+
+          // Build preview image HTML if available
+          let previewImageHtml = '';
+          if (section.previewImage) {
+            previewImageHtml = `
+              <div class="topic-preview-image">
+                <img src="/uploads/test-sample/${section.previewImage}" alt="Preview diagram">
+              </div>
+            `;
+          }
+
+          topicCard.innerHTML = `
+            <div class="topic-header">
+              <span class="topic-number">${index + 1}</span>
+              <h2>${section.heading}</h2>
+            </div>
+            ${section.headline ? `<div class="topic-headline">${section.headline}</div>` : ''}
+            ${previewImageHtml}
+            <div class="topic-summary">${section.summary || 'Summary not available.'}</div>
+            <a href="${topicUrl}" class="topic-link">
+              View Full Content →
+            </a>
+          `;
+
+          topicsList.appendChild(topicCard);
+        });
+
+      } catch (error) {
+        loading.style.display = 'none';
+        errorMessage.textContent = `Failed to load topics: ${error.message}`;
+        errorMessage.style.display = 'block';
+      }
+    }
+
+    // Load topics on page load
+    loadTopics();
+  </script>
+</body>
+
+</html>
