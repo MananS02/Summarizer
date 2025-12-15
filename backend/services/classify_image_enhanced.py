@@ -62,13 +62,15 @@ CONTEXT: This image appears in a section about: "{context}"
 For this image, determine:
 
 1. **Is it IMPORTANT for learning?**
-   - YES if it contains: diagrams, charts, Venn diagrams, flowcharts, network diagrams, organizational charts, process flows, tables, screenshots, infographics, technical illustrations, maps, schematics
-   - YES if it has: text labels, annotations, callouts, legends, axis labels, numeric values
-   - YES if it shows: relationships, hierarchies, groupings, flows, overlaps, connections
-   - NO only if: purely decorative (small icon < 50px, border, pattern) with NO text and NO structural meaning
+   - YES if it contains: diagrams, charts, Venn diagrams, flowcharts, network diagrams, organizational charts, process flows, tables with data, screenshots, infographics, technical illustrations, maps, schematics
+   - YES if it has: text labels, annotations, callouts, legends, axis labels, numeric values, data
+   - YES if it shows: relationships, hierarchies, groupings, flows, overlaps, connections, comparisons
+   - NO if it's: decorative header/banner, page design element, "Participant Handbook" banner, colored bars with no data, purely aesthetic shapes
+   - NO if it's: small icon < 50px, border, pattern, background decoration with NO text and NO structural meaning
 
 2. **What type is it?**
-   - Examples: "Venn diagram", "bar chart", "line chart", "pie chart", "network diagram", "process flow", "organizational chart", "matrix diagram", "table", "screenshot", "infographic", "technical illustration"
+   - Examples: "Venn diagram", "bar chart", "line chart", "pie chart", "network diagram", "process flow", "organizational chart", "matrix diagram", "data table", "screenshot", "infographic", "technical illustration"
+   - NOT: "decorative banner", "header design", "page decoration"
 
 3. **What does it show?**
    - Extract ALL visible text (labels, titles, captions, values)
@@ -83,31 +85,42 @@ IMPORTANT (keep these):
 - Organizational: org charts, hierarchy diagrams, structure diagrams
 - Process: workflows, process flows, swimlane diagrams, sequence diagrams
 - Technical: schematics, architecture diagrams, circuit diagrams
-- Data: tables, matrices, comparison charts
+- Data: tables with actual data, matrices, comparison charts
 - Educational: concept maps, mind maps, labeled illustrations
 - Screenshots: software interfaces, applications, tools
 - Infographics: visual explanations with text and graphics
-- ANY graphic with text labels, annotations, or callouts
+- ANY graphic with text labels, annotations, or callouts that explain concepts
 
-DECORATIVE (skip only these):
+DECORATIVE (skip these):
+- Page headers/banners (e.g., "Participant Handbook", "Chapter Title" banners)
+- Decorative colored bars or shapes with NO data
 - Small icons/logos (< 50x50 pixels) with NO text
 - Pure decorative borders with NO content
 - Background patterns with NO meaning
 - Blank or empty shapes with NO labels
+- Page design elements (decorative lines, dividers)
+- Aesthetic elements that don't convey information
+
+## SPECIAL RULES FOR TABLES
+
+- If labeled "TABLE" but only shows a decorative banner/header → DECORATIVE
+- If shows actual data in rows and columns → IMPORTANT
+- If shows relationships or comparisons → IMPORTANT
 
 ## OUTPUT FORMAT
 
 Return ONLY valid JSON:
 {{
   "is_important": true or false,
-  "image_type": "specific type (e.g., 'Venn diagram', 'bar chart', 'process flow')",
+  "image_type": "specific type (e.g., 'Venn diagram', 'bar chart', 'process flow', 'decorative banner')",
   "description": "Detailed description including: what type of diagram, what text/labels are visible, what relationships or structure it shows",
   "relevance_score": 1-10,
   "tags": ["keyword1", "keyword2", "keyword3"]
 }}
 
-**BE INCLUSIVE**: If an image has ANY educational value, text labels, or shows relationships, mark it as IMPORTANT.
-**DEFAULT TO IMPORTANT**: When uncertain, classify as important (better to include than exclude)."""
+**BE INCLUSIVE for educational content**: If an image has ANY educational value, text labels, or shows relationships, mark it as IMPORTANT.
+**BE EXCLUSIVE for decorative elements**: Page headers, banners, and design elements should be marked as decorative.
+**DEFAULT TO IMPORTANT**: When uncertain about educational value, classify as important (better to include than exclude)."""
 
         # Call GPT-4 Vision
         response = client.chat.completions.create(
